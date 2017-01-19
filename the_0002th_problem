@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+#coding: utf-8
+import uuid
+import pymysql
+
+def get_random_code(num):
+	assert True == isinstance(num,int)
+	assert num > 0
+	the_random_code = []
+	while True:
+		tmp = str(uuid.uuid1())
+		if tmp not in the_random_code:
+			the_random_code.append(tmp)
+		num -= 1
+		if num == 0:
+			break
+	return the_random_code
+
+the_random_code = get_random_code(200)
+
+try:
+	conn = pymysql.connect(host='localhost',user='root',passwd='123456')
+	cur = conn.cursor()
+
+	conn.select_db('test1')
+	sql1 = 'CREATE TABLE the_random (id int,uuid varchar(50))'
+	cur.execute(sql1)
+	sql2 = 'INSERT INTO the_random VALUES(%s, %s)'
+	for i in range(len(the_random_code)):
+		cur.execute(sql2, (i, the_random_code[i]))
+
+	conn.commit()
+	cur.close()
+	conn.close()
+
+except pymysql.Error,e:
+	print('mysqlError:%d:%s' % (e.args[0], e.args[1]))
